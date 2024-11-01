@@ -1,5 +1,7 @@
 const folderName = "food";
 
+const folderArray = [];
+
 // Function to check if 'food' folder exists, and if not, create it
 function checkOrCreateFolder(nodes, callback) {
   let folderId = null;
@@ -10,14 +12,22 @@ function checkOrCreateFolder(nodes, callback) {
       // Check if the node is a folder and has the same name as folderName
       if (!node.url && node.title === folderName) {
         folderId = node.id;
+        folderArray.push(node.title);
+
         return;
       }
+      
 
       // Recursively traverse if the node has children (indicating it's a folder)
       if (node.children) {
         traverseBookmarks(node.children);
       }
     }
+    chrome.runtime.sendMessage({
+      type: 'log',
+      message: "hello"
+    });
+    alert(folderArray[0]);
   }
 
   // Traverse the tree to find the folder
@@ -37,6 +47,7 @@ function checkOrCreateFolder(nodes, callback) {
   } else {
     callback(folderId);
   }
+
 }
 
 // Function to add the current page to the 'food' folder
@@ -50,8 +61,8 @@ function bookmarkCurrentPage() {
         // Add the current page to the 'food' folder
         chrome.bookmarks.create({
           parentId: folderId,
-          title: activeTab.title,
-          url: activeTab.url
+          title: 'Google',
+          url: 'https://www.google.com'
         }, () => {
           console.log(`Page "${activeTab.title}" bookmarked in "${folderName}" folder.`);
         });
