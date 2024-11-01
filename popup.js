@@ -16,19 +16,15 @@ function checkOrCreateFolder(nodes, callback) {
 
         return;
       }
-      
-
       // Recursively traverse if the node has children (indicating it's a folder)
       if (node.children) {
         traverseBookmarks(node.children);
       }
     }
-    chrome.runtime.sendMessage({
-      type: 'log',
-      message: "hello"
-    });
-    alert(folderArray[0]);
+    
   }
+
+  console.log(folderArray);
 
   // Traverse the tree to find the folder
   traverseBookmarks(nodes);
@@ -65,6 +61,7 @@ function bookmarkCurrentPage() {
           url: 'https://www.google.com'
         }, () => {
           console.log(`Page "${activeTab.title}" bookmarked in "${folderName}" folder.`);
+          
         });
       });
     });
