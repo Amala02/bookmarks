@@ -1,6 +1,9 @@
 const folderName = "food";
 
+// folder names --> store
+
 const folderArray = [];
+
 
 // Function to check if 'food' folder exists, and if not, create it
 function checkOrCreateFolder(nodes, callback) {
@@ -21,9 +24,7 @@ function checkOrCreateFolder(nodes, callback) {
         traverseBookmarks(node.children);
       }
     }
-    
   }
-
   console.log(folderArray);
 
   // Traverse the tree to find the folder
@@ -46,19 +47,20 @@ function checkOrCreateFolder(nodes, callback) {
 
 }
 
+
 // Function to add the current page to the 'food' folder
 function bookmarkCurrentPage() {
   // Get the current active tab URL and title
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+  chrome.tabs.query({ active: true, currentWindow: true, lastFocusedWindow: true }, (tabs) => {
     const activeTab = tabs[0];
-    
+    console.log(activeTab.url); 
     chrome.bookmarks.getTree((tree) => {
       checkOrCreateFolder(tree[0].children, (folderId) => {
         // Add the current page to the 'food' folder
         chrome.bookmarks.create({
           parentId: folderId,
-          title: 'Google',
-          url: 'https://www.google.com'
+          title: activeTab.title,
+          url: activeTab.url
         }, () => {
           console.log(`Page "${activeTab.title}" bookmarked in "${folderName}" folder.`);
           
@@ -70,10 +72,6 @@ function bookmarkCurrentPage() {
 
 // Add an event listener to the button in the popup
 document.getElementById('bookmarkPageButton').addEventListener('click', bookmarkCurrentPage);
-
-
-
-
 
 
 chrome.bookmarks.getTree((tree) => {
