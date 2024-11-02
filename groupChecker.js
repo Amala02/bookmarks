@@ -18,3 +18,23 @@ if (canSummarize && canSummarize.available !== 'no') {
 } else {
     // The summarizer can't be used at all.
 }
+
+export async function checkGroup(){
+
+  const msg = "Special Session: Embedded Software for Robotics: Challenges and Future Directions | IEEE Conference Publication | IEEE Xplore";
+
+  const {available, defaultTemperature, defaultTopK, maxTopK } = await ai.languageModel.capabilities();
+
+  if (available !== "no") {
+    const session = await ai.languageModel.create();
+
+    // Prompt the model and wait for the whole result to come back.  
+    const result = await session.prompt(msg+"what one word category does this come under");
+    console.log(result);
+    //return result;
+  }
+
+}
+
+
+

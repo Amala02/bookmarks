@@ -1,7 +1,8 @@
+import { checkGroup } from "./groupChecker.js";
+
 const folderName = "food";
 
 // folder names --> store
-
 const folderArray = [];
 
 
@@ -48,26 +49,42 @@ function checkOrCreateFolder(nodes, callback) {
 }
 
 
+
+
 // Function to add the current page to the 'food' folder
-function bookmarkCurrentPage() {
-  // Get the current active tab URL and title
-  chrome.tabs.query({ active: true, currentWindow: true, lastFocusedWindow: true }, (tabs) => {
+async function bookmarkCurrentPage() {
+  try{
+    const tabs = await chrome.tabs.query({ 
+      active: true, 
+      currentWindow: true, 
+      lastFocusedWindow: true 
+    });
+    
+    if (!tabs || tabs.length === 0) {
+      console.error('No active tab found');
+      return;
+    }
+    
     const activeTab = tabs[0];
-    console.log(activeTab.url); 
-    chrome.bookmarks.getTree((tree) => {
+    console.log(activeTab.url);
+    const group = await checkGroup(activeTab.title);
+    await chrome.bookmarks.getTree((tree) => {
       checkOrCreateFolder(tree[0].children, (folderId) => {
         // Add the current page to the 'food' folder
         chrome.bookmarks.create({
           parentId: folderId,
           title: activeTab.title,
           url: activeTab.url
-        }, () => {
-          console.log(`Page "${activeTab.title}" bookmarked in "${folderName}" folder.`);
-          
         });
+        console.log(`Page "${activeTab.title}" bookmarked in "${folderName}" folder.`);
+          
       });
     });
-  });
+  }catch (error) {
+    console.error('Error bookmarking page:', error);
+  }
+  
+  
 }
 
 // Add an event listener to the button in the popup
