@@ -19,9 +19,9 @@ if (canSummarize && canSummarize.available !== 'no') {
     // The summarizer can't be used at all.
 }*/
 
-export async function checkGroup(){
+export async function checkGroup(title){
 
-  const msg = "Special Session: Embedded Software for Robotics: Challenges and Future Directions | IEEE Conference Publication | IEEE Xplore";
+  const msg = title;
 
   const {available, defaultTemperature, defaultTopK, maxTopK } = await ai.languageModel.capabilities();
 
