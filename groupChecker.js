@@ -1,6 +1,6 @@
 
 
-const canSummarize = await ai.summarizer.capabilities();
+/* const canSummarize = await ai.summarizer.capabilities();
 let summarizer;
 
 if (canSummarize && canSummarize.available !== 'no') {
@@ -17,7 +17,7 @@ if (canSummarize && canSummarize.available !== 'no') {
   }
 } else {
     // The summarizer can't be used at all.
-}
+}*/
 
 export async function checkGroup(){
 
