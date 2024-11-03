@@ -29,7 +29,7 @@ export async function checkGroup(title){
     const session = await ai.languageModel.create();
 
     // Prompt the model and wait for the whole result to come back.  
-    const result = await session.prompt(msg+"what one word category does this come under");
+    const result = await session.prompt(msg+" what one word category does this come under, your output should be one word and accurate to the topic of the title");
     console.log(result);
     //return result;
   }
