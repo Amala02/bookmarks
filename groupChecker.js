@@ -19,10 +19,11 @@ if (canSummarize && canSummarize.available !== 'no') {
     // The summarizer can't be used at all.
 }*/
 
+const folderArray = ["Artificial Intelligence", "Biological Sciences", "Data Science and Analytics", "Computer Science", "Medical and Health Sciences", "Physical Sciences", "Environmental Science", "Social Sciences", "Humanities and Arts"];
+
 export async function checkGroup(title){
 
   const msg = title;
-
   const {available, defaultTemperature, defaultTopK, maxTopK } = await ai.languageModel.capabilities();
 
   if (available !== "no") {
@@ -30,7 +31,8 @@ export async function checkGroup(title){
 
     // Prompt the model and wait for the whole result to come back.  
     const result = await session.prompt(msg+" what one word category does this come under, your output should be one word and accurate to the topic of the title");
-    console.log(result);
+    //const group = await session.complete(result+"");
+    console.log("group: "+result);
     //return result;
   }
 

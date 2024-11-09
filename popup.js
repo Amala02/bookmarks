@@ -1,9 +1,8 @@
 import { checkGroup } from "./groupChecker.js";
 
-const folderName = "food";
+const folderName = "";
 
 // folder names --> store
-const folderArray = [];
 
 
 // Function to check if 'food' folder exists, and if not, create it
@@ -49,8 +48,6 @@ function checkOrCreateFolder(nodes, callback) {
 }
 
 
-
-
 // Function to add the current page to the 'food' folder
 async function bookmarkCurrentPage() {
   try{
@@ -67,6 +64,7 @@ async function bookmarkCurrentPage() {
     
     const activeTab = tabs[0];
     console.log(activeTab.url);
+    console.log("title "+activeTab.title);
     const group = await checkGroup(activeTab.title);
     await chrome.bookmarks.getTree((tree) => {
       checkOrCreateFolder(tree[0].children, (folderId) => {
