@@ -15,7 +15,7 @@ function checkOrCreateFolder(nodes, callback) {
       // Check if the node is a folder and has the same name as folderName
       if (!node.url && node.title === folderName) {
         folderId = node.id;
-        folderArray.push(node.title);
+        //folderArray.push(node.title);
 
         return;
       }
@@ -25,7 +25,7 @@ function checkOrCreateFolder(nodes, callback) {
       }
     }
   }
-  console.log(folderArray);
+  //console.log(folderArray);
 
   // Traverse the tree to find the folder
   traverseBookmarks(nodes);
