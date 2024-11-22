@@ -136,7 +136,7 @@ function addBookmark() {
     {
       parentId: '1',
       title: 'Google',
-      url: 'https://www.google.com'
+      url: 'https://www.google.com'  
     },
     () => {
       console.log('Bookmark added');
