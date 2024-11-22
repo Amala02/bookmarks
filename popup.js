@@ -73,41 +73,54 @@ document.getElementById('bookmarkPageButton').addEventListener('click', async ()
 });
 
 
-// Function to display folders and bookmarks
+// Function to display folders first, followed by normal URLs
 function displayFolders(nodes, parentNode) {
+  const folders = []; // Array to hold folder nodes
+  const urls = []; // Array to hold URL nodes
+
+  // Separate folders and URLs
   for (const node of nodes) {
-    // Check if the node is a folder (has children)
     if (node.children) {
-      const listItem = document.createElement('li');
-      listItem.textContent = node.title;
-      listItem.style.cursor = 'pointer'; // Make folder clickable
-      parentNode.appendChild(listItem);
-
-      // Sublist for child folders/bookmarks
-      const sublist = document.createElement('ul');
-      sublist.style.display = 'none'; // Initially hidden
-      parentNode.appendChild(sublist);
-
-      // Toggle sublist visibility on click
-      listItem.addEventListener('click', (event) => {
-        event.stopPropagation(); // Prevent bubbling
-        sublist.style.display = sublist.style.display === 'none' ? 'block' : 'none';
-      });
-
-      // Recursively display child folders/bookmarks
-      displayFolders(node.children, sublist);
+      folders.push(node);
     } else if (node.url) {
-      // If it's a bookmark, display it
-      const bookmarkItem = document.createElement('li');
-      const link = document.createElement('a');
-      link.href = node.url;
-      link.textContent = node.title;
-      link.target = '_blank'; // Open in new tab
-      bookmarkItem.appendChild(link);
-      parentNode.appendChild(bookmarkItem);
+      urls.push(node);
     }
   }
+
+  // Display folders first
+  for (const folder of folders) {
+    const listItem = document.createElement('li');
+    listItem.textContent = folder.title;
+    listItem.style.cursor = 'pointer'; // Make folder clickable
+    parentNode.appendChild(listItem);
+
+    // Sublist for child folders/bookmarks
+    const sublist = document.createElement('ul');
+    sublist.style.display = 'none'; // Initially hidden
+    parentNode.appendChild(sublist);
+
+    // Toggle sublist visibility on click
+    listItem.addEventListener('click', (event) => {
+      event.stopPropagation(); // Prevent bubbling
+      sublist.style.display = sublist.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Recursively display child folders/bookmarks
+    displayFolders(folder.children, sublist);
+  }
+
+  // Display normal URLs after folders
+  for (const urlNode of urls) {
+    const listItem = document.createElement('li');
+    const link = document.createElement('a');
+    link.href = urlNode.url;
+    link.textContent = urlNode.title;
+    link.target = '_blank'; // Open in a new tab
+    listItem.appendChild(link);
+    parentNode.appendChild(listItem);
+  }
 }
+
 
 // Initialize the extension by displaying the full bookmark tree
 chrome.bookmarks.getTree((tree) => {
