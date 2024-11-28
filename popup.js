@@ -73,59 +73,92 @@ document.getElementById('bookmarkPageButton').addEventListener('click', async ()
 });
 
 
-// Function to display folders first, followed by normal URLs
-function displayFolders(nodes, parentNode) {
-  const folders = []; // Array to hold folder nodes
-  const urls = []; // Array to hold URL nodes
-
-  // Separate folders and URLs
-  for (const node of nodes) {
-    if (node.children) {
-      folders.push(node);
-    } else if (node.url) {
-      urls.push(node);
+// Function to create a bookmark button
+function createBookmarkButton(bookmark) {
+    const button = document.createElement('button');
+    
+    if (bookmark.children) {
+        button.textContent = `📁 ${bookmark.title}`;
+        button.addEventListener('click', () => displayBookmarks(bookmark.children));
+    } else {
+        button.textContent = bookmark.title;
+        // Add wrap-text class if text is too long
+        if (bookmark.title.length > 40) {
+            button.classList.add('wrap-text');
+        }
+        button.addEventListener('click', () => chrome.tabs.create({ url: bookmark.url }));
     }
-  }
-
-  // Display folders first
-  for (const folder of folders) {
-    const listItem = document.createElement('li');
-    listItem.textContent = folder.title;
-    listItem.style.cursor = 'pointer'; // Make folder clickable
-    parentNode.appendChild(listItem);
-
-    // Sublist for child folders/bookmarks
-    const sublist = document.createElement('ul');
-    sublist.style.display = 'none'; // Initially hidden
-    parentNode.appendChild(sublist);
-
-    // Toggle sublist visibility on click
-    listItem.addEventListener('click', (event) => {
-      event.stopPropagation(); // Prevent bubbling
-      sublist.style.display = sublist.style.display === 'none' ? 'block' : 'none';
-    });
-
-    // Recursively display child folders/bookmarks
-    displayFolders(folder.children, sublist);
-  }
-
-  // Display normal URLs after folders
-  for (const urlNode of urls) {
-    const listItem = document.createElement('li');
-    const link = document.createElement('a');
-    link.href = urlNode.url;
-    link.textContent = urlNode.title;
-    link.target = '_blank'; // Open in a new tab
-    listItem.appendChild(link);
-    parentNode.appendChild(listItem);
-  }
+    
+    return button;
 }
 
+// Keep track of navigation history
+const navigationStack = [];
+
+// Function to display bookmarks in container
+function displayBookmarks(bookmarks, isBack = false) {
+    const container = document.getElementById('bookmarkContainer');
+    const backButton = document.getElementById('backButton');
+    
+    // Clear existing bookmarks
+    while (container.children.length > 1) {
+        container.removeChild(container.lastChild);
+    }
+    
+    // Handle navigation stack
+    if (!isBack && bookmarks !== navigationStack[navigationStack.length - 1]) {
+        navigationStack.push(bookmarks);
+    }
+    
+    // Show/hide back button
+    backButton.style.display = navigationStack.length > 1 ? 'block' : 'none';
+    
+    // Sort bookmarks: folders first, then regular bookmarks
+    const folders = bookmarks.filter(b => b.children);
+    const regularBookmarks = bookmarks.filter(b => !b.children);
+    
+    // Create folder row
+    if (folders.length > 0) {
+        const folderRow = document.createElement('div');
+        folderRow.className = 'folder-row';
+        container.appendChild(folderRow);
+        
+        folders.forEach(folder => {
+            const button = createBookmarkButton(folder);
+            button.className = 'folder-button';
+            folderRow.appendChild(button);
+        });
+    }
+    
+    // Create bookmark tabs section
+    if (regularBookmarks.length > 0) {
+        const bookmarkTabs = document.createElement('div');
+        bookmarkTabs.className = 'bookmark-tabs';
+        container.appendChild(bookmarkTabs);
+        
+        regularBookmarks.forEach(bookmark => {
+            const button = createBookmarkButton(bookmark);
+            button.className = 'bookmark-button';
+            bookmarkTabs.appendChild(button);
+        });
+    }
+}
+
+// Handle back button
+document.getElementById('backButton').addEventListener('click', () => {
+    if (navigationStack.length > 1) {
+        navigationStack.pop(); // Remove current view
+        const previousBookmarks = navigationStack[navigationStack.length - 1];
+        displayBookmarks(previousBookmarks, true);
+    }
+});
 
 // Initialize the extension by displaying the full bookmark tree
 chrome.bookmarks.getTree((tree) => {
-  const bookmarkList = document.getElementById('bookmarkList'); // Target container in your popup
-  displayFolders(tree[0].children, bookmarkList); // Traverse all root folders
+    // Start with root children (typically "Bookmarks Bar" and "Other Bookmarks")
+    const rootBookmarks = tree[0].children;
+    navigationStack.push(rootBookmarks);
+    displayBookmarks(rootBookmarks);
 });
 
 
