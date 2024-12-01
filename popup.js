@@ -1,5 +1,6 @@
 import { checkGroup } from "./groupChecker.js";
 import { folderArray } from "./groupChecker.js";
+import { summarizeBookmarks } from "./summarizer.js";
 
 let folderName = null; // Initially null
 
@@ -195,3 +196,54 @@ document.getElementById('addButton').addEventListener('click', addBookmark);
 document
   .getElementById('removeButton')
   .addEventListener('click', removeBookmark);
+
+
+
+folderName = 'Computer Science';
+let urls = [];
+
+
+async function getUrlsFromFolder(folderName) {
+    try {
+        const tree = await chrome.bookmarks.getTree();
+        
+        
+        function findFolder(nodes) {
+            for (const node of nodes) {
+                // If we found the folder we're looking for
+                if (!node.url && node.title === folderName) {
+                    // Get all bookmark URLs in this folder
+                    node.children.forEach(bookmark => {
+                        if (bookmark.url) {
+                            urls.push(bookmark.url);
+                        }
+                    });
+                    return true;
+                }
+                // If this node has children, search them
+                if (node.children) {
+                    if (findFolder(node.children)) return true;
+                }
+            }
+            return false;
+        }
+
+        findFolder(tree[0].children);
+        return urls;
+    } catch (error) {
+        console.error('Error getting bookmark URLs:', error);
+        return [];
+    }
+}
+
+// Example usage:
+// const urls = await getUrlsFromFolder('My Folder Name');
+// console.log(urls);
+// Output will be an array like:
+// [
+//   "https://www.google.com",
+//   "https://github.com",
+//   ...
+// ]
+
+console.log(await summarizeBookmarks(urls));
