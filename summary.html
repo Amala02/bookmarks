@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Summary View</title>
+    <style>
+      body {
+        width: 360px;
+        height: 500px;
+        background-color: #8174A0;
+        padding: 20px;
+        color: white;
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      }
+
+      #summaryContainer {
+        background-color: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 10px 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        max-height: 400px;
+        overflow-y: auto;
+        position: relative;
+        color: #8174A0;
+      }
+
+      #folderTitle {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: white;
+        text-align: center;
+      }
+
+      #summaryText {
+        margin-top: 20px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+      }
+
+      #backButton {
+        background-color: #FFD2A0;
+        color: #8174A0;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        position: absolute;
+        left: 20px;
+        top: 20px;
+        cursor: pointer;
+        font-size: 20px;
+        z-index: 2;
+      }
+
+      #backButton:hover {
+        background-color: #EFB6C8;
+        transform: scale(1.1);
+      }
+    </style>
+  </head>
+  <body>
+    <button id="backButton">←</button>
+    <div id="folderTitle"></div>
+    <div id="summaryContainer">
+      <div id="summaryText"></div>
+    </div>
+    <script src="summary.js" type="module"></script>
+  </body>
+</html> 
