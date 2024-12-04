@@ -3,6 +3,9 @@
   "name": "Bookmark Viewer",
   "version": "1.0",
   "description": "Uses the chrome.bookmarks API to search through, add, and delete bookmarks from the user's bookmark tree.",
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": "icon.png"

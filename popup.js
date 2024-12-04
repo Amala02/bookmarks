@@ -3,6 +3,7 @@ import { folderArray } from "./groupChecker.js";
 import { summarizeBookmarks } from "./summarizer.js";
 
 let folderName = null; // Initially null
+let selectedFolder = null; // Add this line to track selected folder
 
 // Function to check or create the folder based on the determined `folderName`
 function checkOrCreateFolder(nodes, callback) {
@@ -69,7 +70,7 @@ async function bookmarkCurrentPage() {
 }
 
 // Add event listener to bookmark button
-document.getElementById('bookmarkPageButton').addEventListener('click', async () => {
+document.getElementById('addButton').addEventListener('click', async () => {
   await bookmarkCurrentPage();
 });
 
@@ -80,7 +81,16 @@ function createBookmarkButton(bookmark) {
     
     if (bookmark.children) {
         button.textContent = `📁 ${bookmark.title}`;
-        button.addEventListener('click', () => displayBookmarks(bookmark.children));
+        button.addEventListener('click', () => {
+            // Remove selected class from all buttons
+            document.querySelectorAll('.folder-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            // Add selected class to clicked button
+            button.classList.add('selected');
+            selectedFolder = bookmark.title;
+            displayBookmarks(bookmark.children);
+        });
     } else {
         button.textContent = bookmark.title;
         // Add wrap-text class if text is too long
@@ -114,35 +124,16 @@ function displayBookmarks(bookmarks, isBack = false) {
     // Show/hide back button
     backButton.style.display = navigationStack.length > 1 ? 'block' : 'none';
     
-    // Sort bookmarks: folders first, then regular bookmarks
-    const folders = bookmarks.filter(b => b.children);
-    const regularBookmarks = bookmarks.filter(b => !b.children);
-    
     // Create folder row
-    if (folders.length > 0) {
-        const folderRow = document.createElement('div');
-        folderRow.className = 'folder-row';
-        container.appendChild(folderRow);
-        
-        folders.forEach(folder => {
-            const button = createBookmarkButton(folder);
-            button.className = 'folder-button';
-            folderRow.appendChild(button);
-        });
-    }
+    const folderRow = document.createElement('div');
+    folderRow.className = 'folder-row';
+    container.appendChild(folderRow);
     
-    // Create bookmark tabs section
-    if (regularBookmarks.length > 0) {
-        const bookmarkTabs = document.createElement('div');
-        bookmarkTabs.className = 'bookmark-tabs';
-        container.appendChild(bookmarkTabs);
-        
-        regularBookmarks.forEach(bookmark => {
-            const button = createBookmarkButton(bookmark);
-            button.className = 'bookmark-button';
-            bookmarkTabs.appendChild(button);
-        });
-    }
+    bookmarks.forEach(folder => {
+        const button = createBookmarkButton(folder);
+        button.className = 'folder-button';
+        folderRow.appendChild(button);
+    });
 }
 
 // Handle back button
@@ -154,73 +145,44 @@ document.getElementById('backButton').addEventListener('click', () => {
     }
 });
 
-// Initialize the extension by displaying the full bookmark tree
+// Initialize the extension by displaying only the bookmarks bar folders
 chrome.bookmarks.getTree((tree) => {
-    // Start with root children (typically "Bookmarks Bar" and "Other Bookmarks")
-    const rootBookmarks = tree[0].children;
-    navigationStack.push(rootBookmarks);
-    displayBookmarks(rootBookmarks);
+    // Get the Bookmarks Bar (typically the first child at index 0)
+    const bookmarksBar = tree[0].children[0];
+    // Only get folders from the bookmarks bar
+    const bookmarksBarFolders = bookmarksBar.children.filter(node => !node.url);
+    navigationStack.push(bookmarksBarFolders);
+    displayBookmarks(bookmarksBarFolders);
 });
 
 
 
-// Add a bookmark for www.google.com
-function addBookmark() {
-  chrome.bookmarks.create(
-    {
-      parentId: '1',
-      title: 'Google',
-      url: 'https://www.google.com'  
-    },
-    () => {
-      console.log('Bookmark added');
-      location.reload(); // Refresh the popup
-    }
-  );
-}
 
-// Remove the bookmark for www.google.com
-function removeBookmark() {
-  chrome.bookmarks.search({ url: 'https://www.google.com/' }, (results) => {
-    for (const result of results) {
-      if (result.url === 'https://www.google.com/') {
-        chrome.bookmarks.remove(result.id, () => {});
-      }
-    }
-    location.reload();
-  });
-}
-
-// Add click event listeners to the buttons
-document.getElementById('addButton').addEventListener('click', addBookmark);
-document
-  .getElementById('removeButton')
-  .addEventListener('click', removeBookmark);
-
-
-
-folderName = 'Computer Science';
-let urls = [];
-
-
-async function getUrlsFromFolder(folderName) {
+async function clickedSUmmarizer(folderName1) {
     try {
         const tree = await chrome.bookmarks.getTree();
+        const urls = [];
         
+        const bookmarksBar = tree[0].children[0];
+        console.log('Searching for folder:', folderName1);
         
         function findFolder(nodes) {
             for (const node of nodes) {
-                // If we found the folder we're looking for
-                if (!node.url && node.title === folderName) {
-                    // Get all bookmark URLs in this folder
-                    node.children.forEach(bookmark => {
-                        if (bookmark.url) {
-                            urls.push(bookmark.url);
+                if (!node.url && node.title === folderName1) {
+                    function collectUrls(folderNode) {
+                        if (!folderNode.children) return;
+                        for (const child of folderNode.children) {
+                            if (child.url) {
+                                urls.push(child.url);
+                            }
+                            if (child.children) {
+                                collectUrls(child);
+                            }
                         }
-                    });
+                    }
+                    collectUrls(node);
                     return true;
                 }
-                // If this node has children, search them
                 if (node.children) {
                     if (findFolder(node.children)) return true;
                 }
@@ -228,22 +190,38 @@ async function getUrlsFromFolder(folderName) {
             return false;
         }
 
-        findFolder(tree[0].children);
+        findFolder(bookmarksBar.children);
+        console.log('Final URLs collected:', urls);
+        
+        if (urls.length === 0) {
+            throw new Error('No URLs found in the selected folder');
+        }
+
+        console.log('Summarizing...');
+        const summary = await summarizeBookmarks(urls);
+        console.log('Summary:', summary);
+        
+        // Send message with both summary and folder name
+        await new Promise((resolve) => {
+            chrome.runtime.sendMessage({ 
+                type: 'openSummary',
+                summary: summary,
+                folderName: folderName1
+            }, () => {
+                setTimeout(() => {
+                    window.close();
+                    resolve();
+                }, 100);
+            });
+        });
+
         return urls;
     } catch (error) {
-        console.error('Error getting bookmark URLs:', error);
-        return [];
+        console.error('Error in clickedSUmmarizer:', error);
+        throw error;
     }
 }
 
-// Example usage:
-// const urls = await getUrlsFromFolder('My Folder Name');
-// console.log(urls);
-// Output will be an array like:
-// [
-//   "https://www.google.com",
-//   "https://github.com",
-//   ...
-// ]
-
-console.log(await summarizeBookmarks(urls));
+document.getElementById('summarizeButton').addEventListener('click', async () => {
+  await clickedSUmmarizer(selectedFolder);
+});

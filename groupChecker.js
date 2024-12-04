@@ -12,7 +12,7 @@ export async function checkGroup(title) {
     const session = await ai.languageModel.create();
     
     // Update the prompt to restrict the AI to the specific categories in folderArray
-    const promptMessage = `${msg}. Categorize this title into one of the following categories: ${folderArray.join(", ")}. Respond with only one of these exact categories.`;
+    const promptMessage = `${msg}. Categorize this title into one of the relevant categories: ${folderArray.join(", ")}. Respond with only one of these exact categories.`;
 
     const result = await session.prompt(promptMessage);
 
